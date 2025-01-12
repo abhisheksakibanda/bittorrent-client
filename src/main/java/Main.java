@@ -34,7 +34,20 @@ public class Main {
     private static void decode(String bencodedValue) {
         try {
             Object decoded = decodeBencode(bencodedValue, new int[]{0});
-            System.out.println(gson.toJson(decoded));
+            if (decoded instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) decoded;
+                if (map.containsKey("announce")) {
+                    System.out.println("Tracker URL: " + map.get("announce"));
+                    if (map.containsKey("info")) {
+                        Map<String, Object> info = (Map<String, Object>) map.get("info");
+                        System.out.println("Length: " + info.get("length"));
+                    }
+                } else {
+                    System.out.println(gson.toJson(decoded));
+                }
+            } else {
+                System.out.println(decoded);
+            }
         } catch (RuntimeException e) {
             System.err.println("Decoding failed: " + e.getMessage());
         }
