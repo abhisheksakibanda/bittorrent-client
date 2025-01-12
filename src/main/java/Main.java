@@ -24,7 +24,7 @@ public class Main {
             case "decode" -> decode(args[1]);
             case "info" -> {
                 Path path = Paths.get(args[1]);
-                String bencodedValue = Files.readString(path, StandardCharsets.UTF_8);
+                String bencodedValue = Files.readString(path, StandardCharsets.ISO_8859_1);
                 decode(bencodedValue);
             }
             default -> System.out.println("Unknown command: " + command);
