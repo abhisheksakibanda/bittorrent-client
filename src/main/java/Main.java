@@ -39,7 +39,7 @@ public class Main {
 
     private static void decode(byte[] bencodedValue) {
         try {
-            Object decoded = Torrent.decodeBencode(bencodedValue, new int[]{0});
+            Object decoded = BencodeCodec.decodeBencode(bencodedValue, new int[]{0});
             System.out.println(gson.toJson(decoded));
         } catch (RuntimeException e) {
             System.err.println("Decoding failed: " + e.getMessage());
