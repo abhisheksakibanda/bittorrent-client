@@ -17,7 +17,8 @@ public class BencodeCodec {
                 index[0]++;
                 List<Object> list = new ArrayList<>();
                 while (bencodedString[index[0]] != 'e') {
-                    list.add(decodeBencode(bencodedString, index));
+                    Object decodedBencode = decodeBencode(bencodedString, index);
+                    list.add(decodedBencode instanceof byte[] ? new String((byte[]) decodedBencode) : decodedBencode);
                 }
                 index[0]++;
                 return list;

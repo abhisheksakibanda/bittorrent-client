@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: decode <bencodedValue> | info <torrentFile>");
+            System.out.println("Usage: decode <bencodedValue> | info <torrentFile> | peers <torrentFile>");
             return;
         }
 
@@ -20,7 +20,11 @@ public class Main {
         try {
             switch (command) {
                 case "decode" -> decode(args[1].getBytes());
-                case "info" -> parseTorrentFile(args);
+                case "info" -> System.out.println(parseTorrentFile(args));
+                case "peers" -> {
+                    Torrent torrent = parseTorrentFile(args);
+
+                }
                 default -> System.out.println("Unknown command: " + command);
             }
         } catch (IOException e) {
@@ -30,11 +34,10 @@ public class Main {
         }
     }
 
-    private static void parseTorrentFile(String[] args) throws IOException, NoSuchAlgorithmException {
+    private static Torrent parseTorrentFile(String[] args) throws IOException, NoSuchAlgorithmException {
         Path path = Paths.get(args[1]);
         byte[] bencodedValue = Files.readAllBytes(path);
-        Torrent torrent = new Torrent(bencodedValue);
-        System.out.println(torrent);
+        return new Torrent(bencodedValue);
     }
 
     private static void decode(byte[] bencodedValue) {
