@@ -1,10 +1,10 @@
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 
 public class Main {
     private static final Gson gson = new Gson();
@@ -19,22 +19,25 @@ public class Main {
 
         try {
             switch (command) {
-                case "decode" -> decode(args[1]);
+                case "decode" -> decode(args[1].getBytes());
                 case "info" -> parseTorrentFile(args);
                 default -> System.out.println("Unknown command: " + command);
             }
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println("Error creating SHA-1 digest: " + e.getMessage());
         }
     }
 
-    private static void parseTorrentFile(String[] args) throws IOException {
+    private static void parseTorrentFile(String[] args) throws IOException, NoSuchAlgorithmException {
         Path path = Paths.get(args[1]);
-        Torrent torrent = new Torrent(Files.readString(path, StandardCharsets.ISO_8859_1));
+        byte[] bencodedValue = Files.readAllBytes(path);
+        Torrent torrent = new Torrent(bencodedValue);
         System.out.println(torrent);
     }
 
-    private static void decode(String bencodedValue) {
+    private static void decode(byte[] bencodedValue) {
         try {
             Object decoded = Torrent.decodeBencode(bencodedValue, new int[]{0});
             System.out.println(gson.toJson(decoded));
