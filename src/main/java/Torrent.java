@@ -42,7 +42,7 @@ public class Torrent {
         switch (current) {
             case 'i' -> {
                 // Decode integer
-                int endIndex = findEndIndex(bencodedString, index, 'e');
+                int endIndex = findEndIndex(bencodedString, index);
                 long value = Long.parseLong(new String(bencodedString, index[0] + 1, endIndex - index[0] - 1));
                 index[0] = endIndex + 1;
                 return value;
@@ -94,8 +94,8 @@ public class Torrent {
         }
     }
 
-    private static int findEndIndex(byte[] bencodedString, int[] index, char endChar) {
-        int endIndex = indexOf(bencodedString, endChar, index[0]);
+    private static int findEndIndex(byte[] bencodedString, int[] index) {
+        int endIndex = indexOf(bencodedString, 'e', index[0]);
         if (endIndex == -1) {
             throw new RuntimeException("Invalid format at index " + index[0]);
         }
