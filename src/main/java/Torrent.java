@@ -8,6 +8,7 @@ public class Torrent {
     private final String announce;
     private final Map<String, Object> info;
     private final String infoHash;
+    private final List<String> piecesHashes = new ArrayList<>();
 
     public Torrent(byte[] bencodedValue) throws NoSuchAlgorithmException {
         Object decoded = decodeBencode(bencodedValue, new int[]{0});
@@ -23,6 +24,10 @@ public class Torrent {
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
         Bencode bencode = new Bencode();
         infoHash = bytesToHex(digest.digest(bencode.encode(info)));
+
+        for (int i = 0; i < ((byte[])info.get("pieces")).length; i += 20) {
+            piecesHashes.add(bytesToHex(Arrays.copyOfRange((byte[])info.get("pieces"), i, i + 20)));
+        }
     }
 
     private String bytesToHex(byte[] digest) {
@@ -117,6 +122,15 @@ public class Torrent {
 
     @Override
     public String toString() {
-        return "Tracker URL: " + announce + "\nLength: " + info.getOrDefault("length", "N/A") + "\nInfo Hash: " + infoHash;
+        StringBuilder piecesHashes = new StringBuilder();
+        for (String hash : this.piecesHashes) {
+            piecesHashes.append(hash).append("\n");
+        }
+
+        return "Tracker URL: " + announce +
+                "\nLength: " + info.getOrDefault("length", "N/A") +
+                "\nInfo Hash: " + infoHash +
+                "\nPiece Length: " + info.getOrDefault("piece length", "N/A") +
+                "\nPieces Hashes:\n" + piecesHashes;
     }
 }
