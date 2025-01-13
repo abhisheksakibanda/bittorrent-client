@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -7,7 +8,7 @@ public class Torrent {
     private final Map<String, Object> info;
     private final String infoHash;
 
-    public Torrent(byte[] bencodedValue) throws NoSuchAlgorithmException {
+    public Torrent(byte[] bencodedValue) throws NoSuchAlgorithmException, IOException {
         Object decoded = BencodeCodec.decodeBencode(bencodedValue, new int[]{0});
 
         if (!(decoded instanceof Map)) {
