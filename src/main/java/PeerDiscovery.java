@@ -56,14 +56,17 @@ public class PeerDiscovery {
     public List<String> getPeers() {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             // Build the request URL
-            String requestUrl = (new URIBuilder(trackerUrl).setParameters(
+            URIBuilder requestUrlBuilder = new URIBuilder(trackerUrl).setParameters(
                     new BasicNameValuePair("peer_id", peerId),
                     new BasicNameValuePair("port", String.valueOf(port)),
                     new BasicNameValuePair("uploaded", String.valueOf(uploaded)),
                     new BasicNameValuePair("downloaded", String.valueOf(downloaded)),
                     new BasicNameValuePair("left", String.valueOf(left)),
-                    new BasicNameValuePair("compact", String.valueOf(compact))
-            ).build()) + "&info_hash=" + infoHash;
+                    new BasicNameValuePair("compact", String.valueOf(compact)),
+                    new BasicNameValuePair("info_hash", "")
+            );
+
+            String requestUrl = requestUrlBuilder.build() + infoHash;
 
             HttpGet request = new HttpGet(requestUrl);
 
