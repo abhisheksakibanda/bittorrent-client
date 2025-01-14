@@ -1,10 +1,12 @@
 import com.google.gson.Gson;
+import util.BencodeCodec;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class Main {
     private static final Gson gson = new Gson();
@@ -23,7 +25,7 @@ public class Main {
                 case "info" -> System.out.println(parseTorrentFile(args));
                 case "peers" -> {
                     Torrent torrent = parseTorrentFile(args);
-
+                    getPeers(torrent).forEach(System.out::println);
                 }
                 default -> System.out.println("Unknown command: " + command);
             }
@@ -47,5 +49,10 @@ public class Main {
         } catch (RuntimeException e) {
             System.err.println("Decoding failed: " + e.getMessage());
         }
+    }
+
+    private static List<String> getPeers(Torrent torrent) {
+        PeerDiscovery peerDiscovery = new PeerDiscovery(torrent);
+        return peerDiscovery.getPeers();
     }
 }

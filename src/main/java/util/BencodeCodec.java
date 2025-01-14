@@ -1,3 +1,5 @@
+package util;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -31,7 +33,7 @@ public class BencodeCodec {
                     Object value = decodeBencode(bencodedString, index);
                     Object decodedValue;
                     if (value instanceof byte[]) {
-                        decodedValue = "pieces".equals(key) ? value : new String((byte[]) value);
+                        decodedValue = List.of("pieces", "peers").contains(key) ? value : new String((byte[]) value);
                     } else {
                         decodedValue = value;
                     }

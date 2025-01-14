@@ -1,3 +1,5 @@
+import util.BencodeCodec;
+
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +49,18 @@ public class Torrent {
             piecesHashes.add(bytesToHex(Arrays.copyOfRange((byte[]) info.get("pieces"), i, i + 20)));
         }
         return piecesHashes;
+    }
+
+    public String getAnnounce() {
+        return announce;
+    }
+
+    public Map<String, Object> getInfo() {
+        return info;
+    }
+
+    public String getInfoHash() {
+        return infoHash;
     }
 
     @Override
