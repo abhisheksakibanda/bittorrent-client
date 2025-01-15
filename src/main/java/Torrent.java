@@ -1,4 +1,5 @@
 import util.BencodeCodec;
+import util.PeerIdGenerator;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -9,6 +10,7 @@ public class Torrent {
     private final String announce;
     private final Map<String, Object> info;
     private final String infoHash;
+    private final String peerId = PeerIdGenerator.generatePeerId();
 
     public Torrent(byte[] bencodedValue) throws NoSuchAlgorithmException, IOException {
         Object decoded = BencodeCodec.decodeBencode(bencodedValue, new int[]{0});
@@ -22,31 +24,13 @@ public class Torrent {
         info = Collections.unmodifiableMap((Map<String, Object>) map.getOrDefault("info", Collections.emptyMap()));
 
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
-        infoHash = bytesToHex(digest.digest(BencodeCodec.encodeBencode(info)));
-    }
-
-    private static final String[] HEX_LOOKUP_TABLE = createHexLookupTable();
-
-    private static String[] createHexLookupTable() {
-        String[] lookupTable = new String[256];
-        for (int i = 0; i < 256; i++) {
-            lookupTable[i] = String.format("%02x", i);
-        }
-        return lookupTable;
-    }
-
-    private String bytesToHex(byte[] digest) {
-        StringBuilder hexString = new StringBuilder(digest.length * 2);
-        for (byte b : digest) {
-            hexString.append(HEX_LOOKUP_TABLE[b & 0xFF]);
-        }
-        return hexString.toString();
+        infoHash = HexFormat.of().formatHex(digest.digest(BencodeCodec.encodeBencode(info)));
     }
 
     public List<String> getPiecesHashes() {
         List<String> piecesHashes = new ArrayList<>();
         for (int i = 0; i < ((byte[]) info.get("pieces")).length; i += 20) {
-            piecesHashes.add(bytesToHex(Arrays.copyOfRange((byte[]) info.get("pieces"), i, i + 20)));
+            piecesHashes.add(HexFormat.of().formatHex(Arrays.copyOfRange((byte[]) info.get("pieces"), i, i + 20)));
         }
         return piecesHashes;
     }
@@ -61,6 +45,10 @@ public class Torrent {
 
     public String getInfoHash() {
         return infoHash;
+    }
+
+    public String getPeerId() {
+        return peerId;
     }
 
     @Override

@@ -1,10 +1,22 @@
 package util;
 
+import com.google.gson.Gson;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 
 public class BencodeCodec {
+    private static final Gson gson = new Gson();
+
+    public static void decode(byte[] bencodedValue) {
+        try {
+            Object decoded = BencodeCodec.decodeBencode(bencodedValue, new int[]{0});
+            System.out.println(gson.toJson(decoded));
+        } catch (RuntimeException e) {
+            System.err.println("Decoding failed: " + e.getMessage());
+        }
+    }
 
     public static Object decodeBencode(byte[] bencodedString, int[] index) {
         char current = (char) bencodedString[index[0]];  // casting byte to char for easy comparison

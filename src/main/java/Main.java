@@ -1,4 +1,3 @@
-import com.google.gson.Gson;
 import util.BencodeCodec;
 
 import java.io.IOException;
@@ -6,14 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 public class Main {
-    private static final Gson gson = new Gson();
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: decode <bencodedValue> | info <torrentFile> | peers <torrentFile>");
+            System.out.println("Usage: decode <bencodedValue> | info <torrentFile> | peers <torrentFile> | handshake <torrentFile> <peer_ip>:<peer_port>");
             return;
         }
 
@@ -21,11 +18,16 @@ public class Main {
 
         try {
             switch (command) {
-                case "decode" -> decode(args[1].getBytes());
+                case "decode" -> BencodeCodec.decode(args[1].getBytes());
                 case "info" -> System.out.println(parseTorrentFile(args));
                 case "peers" -> {
                     Torrent torrent = parseTorrentFile(args);
-                    getPeers(torrent).forEach(System.out::println);
+                    new PeerDiscovery(torrent).getPeers().forEach(System.out::println);
+                }
+                case "handshake" -> {
+                    Torrent torrent = parseTorrentFile(args);
+                    String[] parts = args[2].split(":");
+                    System.out.println("Peer ID: " + new Handshake(torrent, parts[0], Integer.parseInt(parts[1])).sendHandshake());
                 }
                 default -> System.out.println("Unknown command: " + command);
             }
@@ -40,19 +42,5 @@ public class Main {
         Path path = Paths.get(args[1]);
         byte[] bencodedValue = Files.readAllBytes(path);
         return new Torrent(bencodedValue);
-    }
-
-    private static void decode(byte[] bencodedValue) {
-        try {
-            Object decoded = BencodeCodec.decodeBencode(bencodedValue, new int[]{0});
-            System.out.println(gson.toJson(decoded));
-        } catch (RuntimeException e) {
-            System.err.println("Decoding failed: " + e.getMessage());
-        }
-    }
-
-    private static List<String> getPeers(Torrent torrent) {
-        PeerDiscovery peerDiscovery = new PeerDiscovery(torrent);
-        return peerDiscovery.getPeers();
     }
 }

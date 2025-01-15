@@ -12,44 +12,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
 public class PeerDiscovery {
     private final String trackerUrl;
     private final String infoHash;
-    private final String peerId = PeerIdGenerator.generatePeerId();
+    private final String peerId;
     private final int port = 6881;
-    private int uploaded = 0;
-    private int downloaded = 0;
     private final long left;
-    private int compact = 1;
+    private final int uploaded = 0;
+    private final int downloaded = 0;
+    private final int compact = 1;
 
     PeerDiscovery(Torrent torrent) {
         trackerUrl = torrent.getAnnounce();
-        infoHash = createInfoHash(torrent.getInfoHash());
         left = (long) torrent.getInfo().get("length");
-    }
-
-    private String createInfoHash(String infoHash) {
-        StringBuilder encodedString = new StringBuilder();
-
-        for (int i = 0; i < infoHash.length(); i += 2) {
-            // Get the two characters from the info hash string
-            String hexPair = infoHash.substring(i, i + 2);
-
-            // Convert the hex pair to its byte value
-            int byteValue = Integer.parseInt(hexPair, 16);
-
-            // Check if the byte is an ASCII letter
-            if ((byteValue >= 0x41 && byteValue <= 0x5A) || (byteValue >= 0x61 && byteValue <= 0x7A)) {
-                encodedString.append((char) byteValue);
-            } else {
-                // Encode the byte as %XX
-                encodedString.append(String.format("%%%02x", byteValue));
-            }
-        }
-        return encodedString.toString();
+        peerId = torrent.getPeerId();
+        infoHash = torrent.getInfoHash();
     }
 
 
@@ -66,7 +47,7 @@ public class PeerDiscovery {
                     new BasicNameValuePair("info_hash", "")
             );
 
-            String requestUrl = requestUrlBuilder.build() + infoHash;
+            String requestUrl = requestUrlBuilder.build() + urlEncodeInfoHash(infoHash);
 
             HttpGet request = new HttpGet(requestUrl);
 
@@ -86,6 +67,24 @@ public class PeerDiscovery {
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException("Error fetching peers: " + e.getMessage(), e);
         }
+    }
+
+    private String urlEncodeInfoHash(String hexInfoHash) {
+        // Step 1: Convert hex string to binary data
+        byte[] binaryInfoHash = HexFormat.of().parseHex(hexInfoHash);
+
+        // Step 2: URL-encode the binary data
+        StringBuilder encoded = new StringBuilder();
+        for (byte b : binaryInfoHash) {
+            if ((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') || b == '-' || b == '_' || b == '.' || b == '~') {
+                // Alphanumeric or safe character, add as-is
+                encoded.append((char) b);
+            } else {
+                // Unsafe character, convert to %XX format
+                encoded.append(String.format("%%%02x", b)); // Use %02x for lowercase if needed
+            }
+        }
+        return encoded.toString();
     }
 
     private List<String> parsePeers(byte[] content) throws IOException {
