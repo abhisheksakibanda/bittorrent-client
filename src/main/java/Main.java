@@ -5,12 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: decode <bencodedValue> | info <torrentFile> | peers <torrentFile> | handshake <torrentFile> <peer_ip>:<peer_port>");
+            System.out.println("Usage: decode <bencodedValue> | info <torrentFile> | peers <torrentFile> | handshake <torrentFile> <peerIp>:<peerPort> | download_piece -o <pieceLocation> <torrentFile> <pieceIndex>");
             return;
         }
 
@@ -27,7 +28,14 @@ public class Main {
                 case "handshake" -> {
                     Torrent torrent = parseTorrentFile(args);
                     String[] parts = args[2].split(":");
-                    System.out.println("Peer ID: " + new Handshake(torrent, parts[0], Integer.parseInt(parts[1])).sendHandshake());
+                    Handshake.handleHandshake(torrent, parts[0], Integer.parseInt(parts[1]));
+                }
+                case "download_piece" -> {
+                    Torrent torrent = parseTorrentFile(List.of(args).subList(2, args.length).toArray(String[]::new));
+                    int pieceIndex = Integer.parseInt(args[args.length - 1]);
+                    PieceDownloader downloader = new PieceDownloader(torrent, pieceIndex);
+                    byte[] pieceData = downloader.downloadPiece();
+                    downloader.savePiece(args[2], pieceData);
                 }
                 default -> System.out.println("Unknown command: " + command);
             }

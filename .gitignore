@@ -28,3 +28,6 @@ target/
 
 # IntelliJ project files
 .idea/
+
+# Torrent pieces
+pieces/
